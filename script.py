@@ -11,25 +11,34 @@ import daily_event_monitor
 import bs4
 import requests
 import loguru
-
-
+    
 def scrape_data_point():
     """
-    Scrapes the main headline from The Daily Pennsylvanian home page.
+    Scrapes the title of the latest crossword from The Daily Pennsylvanian Crosswords page.
 
     Returns:
-        str: The headline text if found, otherwise an empty string.
+        str: The crossword title if found, otherwise an empty string.
     """
-    req = requests.get("https://www.thedp.com")
-    loguru.logger.info(f"Request URL: {req.url}")
-    loguru.logger.info(f"Request status code: {req.status_code}")
+    # URL of the Crosswords page
+    crossword_page_url = "https://www.thedp.com/section/crosswords"
+    req = requests.get(crossword_page_url)
+    loguru.logger.info(f"Request URL (Crosswords page): {req.url}")
+    loguru.logger.info(f"Request status code (Crosswords page): {req.status_code}")
 
+    latest_crossword_title = ""
     if req.ok:
         soup = bs4.BeautifulSoup(req.text, "html.parser")
-        target_element = soup.find("a", class_="frontpage-link")
-        data_point = "" if target_element is None else target_element.text
-        loguru.logger.info(f"Data point: {data_point}")
-        return data_point
+        # Find the latest crossword article
+        latest_article = soup.find("div", class_="row section-article")
+        if latest_article:
+            title_element = latest_article.find("h3", class_="standard-link")
+            if title_element and title_element.a:
+                latest_crossword_title = title_element.a.text.strip()
+                loguru.logger.info(f"Latest crossword title: {latest_crossword_title}")
+
+    return latest_crossword_title
+
+
 
 
 if __name__ == "__main__":
